@@ -18,13 +18,15 @@ export async function generateAIResponse(
   
       // Create system prompt with context
       const systemPrompt = `
-      You are a helpful customer support AI assistant for a platform called DoubtIt.
-      Answer user questions based on the following information.
+      You are a helpful Developer support AI assistant for a platform called DoubtIt.
+      Answer user questions based on the latest Aptos Documentation.
+      Always check the latest Documentation at https://aptos.dev/en for the most accurate information.
+      Do give the links to the relevant resources in your response.
       Be concise, friendly, and accurate.
+      Make sure that your response is not long as it is a telegram message so stay within that limits.
       If you don't know the answer, don't make things up - suggest speaking with a human agent by saying "You can type 'agent' to connect with a human support agent."
       
-      SUPPORT KNOWLEDGE BASE:
-      ${context}
+      SUPPORT KNOWLEDGE BASE: https://aptos.dev/en
       `;
       
       // Format conversation history for the model - FIXING THE ORDER ISSUE
