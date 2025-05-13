@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DoubtIt: AI-Powered Developer Support Platform
 
-## Getting Started
+![DoubtIt Logo](public/doubtItLogo.png)
 
-First, run the development server:
+## What is DoubtIt?
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+DoubtIt is an intelligent developer support platform that bridges the gap between AI and human expertise. It provides a seamless experience where developers can quickly get answers to technical questions from an AI assistant, with the option to seamlessly transition to a human expert when needed.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Imagine you're debugging a complex issue or trying to understand the Aptos blockchain framework. With DoubtIt:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Ask your question to our Telegram bot
+2. Get instant, contextual answers from our Gemini AI model trained on Aptos documentation
+3. If you need more clarification or the AI can't solve your problem, simply type "agent" to connect with a human expert
+4. Support agents see the full conversation history and can seamlessly take over
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## How DoubtIt Works
 
-## Learn More
+![DoubtIt Architecture Diagram](public/doubtItDescription.png)
 
-To learn more about Next.js, take a look at the following resources:
+Developer support is often fragmented across documentation, GitHub issues, Stack Overflow, Discord, and more. DoubtIt consolidates this experience:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Instant answers**: Get solutions to common problems without waiting
+- **Contextual understanding**: The AI understands your specific problem and conversation history
+- **Human expertise when needed**: Seamless transition to experienced support agents
+- **No more context switching**: Stay in one conversation from issue to resolution
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Features
 
-## Deploy on Vercel
+### For Developers
+- 🤖 **AI-First Assistance**: Gemini AI provides accurate technical responses
+- 📱 **Telegram Integration**: Ask questions in the familiar Telegram interface
+- 👨‍💻 **Expert Takeover**: Connect with human experts when needed
+- 🔄 **Continuous Learning**: The system improves as it learns from interactions
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### For Support Teams
+- 📊 **Comprehensive Dashboard**: Monitor all support conversations
+- 📝 **Full Context**: See the entire history when joining a conversation
+- ⚡ **Efficiency**: AI handles routine questions, humans focus on complex issues
+- 📈 **Analytics**: Track patterns in questions to improve documentation
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Tech Stack
+
+- **Frontend**: Next.js 15 with React 19
+- **Backend**: Next.js API Routes (serverless)
+- **Database**: Supabase (PostgreSQL)
+- **Bot Platform**: Telegram with Telegraf
+- **AI**: Google Gemini AI
+- **Deployment**: Vercel
+
+## How It Works
+
+1. **User sends a question via Telegram**
+   - "How do I structure a Move module in Aptos?"
+
+2. **AI analyzes the question and responds**
+   - The Gemini model processes the query against Aptos documentation
+   - Returns a concise, accurate response with relevant code examples and links
+
+3. **If the user needs more help**
+   - They can type "agent" or "help" 
+   - The system flags the conversation for human support
+   - Support agents are notified of a pending request
+
+4. **Human experts join the conversation**
+   - They see the full history and AI responses
+   - Take over to provide specialized assistance
+   - Can close the conversation once the issue is resolved
+
+5. **The system learns from each interaction**
+   - Successful resolutions improve future AI responses
+   - Common issues are identified for documentation improvements
+
+## Vision
+
+Our vision is to create a developer support ecosystem where:
+
+1. **Knowledge flows freely** between AI systems and human experts
+2. **Response times decrease** while solution quality increases
+3. **Support teams scale effectively** by focusing on complex problems
+4. **Developers stay in flow** by getting answers where they already work
+
+DoubtIt is starting with the Aptos blockchain ecosystem, but our approach can be applied to any technical domain where rapid, accurate support is critical.
+
+## License
+
+This project is licensed under the Mozilla Public License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+*DoubtIt: Where AI and human expertise converge to power developer success.*
