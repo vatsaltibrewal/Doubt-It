@@ -14,7 +14,7 @@ export async function generateAIResponse(
       const { context } = await getRelevantDocumentation(userMessage);
       
       // Get the Gemini model
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
   
       // Create system prompt with context
       const systemPrompt = `
