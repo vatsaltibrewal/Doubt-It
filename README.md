@@ -6,10 +6,10 @@
 
 DoubtIt is an intelligent developer support platform that bridges the gap between AI and human expertise. It provides a seamless experience where developers can quickly get answers to technical questions from an AI assistant, with the option to seamlessly transition to a human expert when needed.
 
-Imagine you're debugging a complex issue or trying to understand the Aptos blockchain framework. With DoubtIt:
+Imagine you're debugging a complex issue or trying to understand a framework. With DoubtIt:
 
 1. Ask your question to our Telegram bot
-2. Get instant, contextual answers from our Gemini AI model trained on Aptos documentation
+2. Get instant, contextual answers from our Gemini AI model trained on all documentation
 3. If you need more clarification or the AI can't solve your problem, simply type "agent" to connect with a human expert
 4. Support agents see the full conversation history and can seamlessly take over
 
@@ -79,7 +79,7 @@ Our vision is to create a developer support ecosystem where:
 3. **Support teams scale effectively** by focusing on complex problems
 4. **Developers stay in flow** by getting answers where they already work
 
-DoubtIt is starting with the Aptos blockchain ecosystem, but our approach can be applied to any technical domain where rapid, accurate support is critical.
+DoubtIt is starting with all Frameworks, but our approach can be applied to any technical domain where rapid, accurate support is critical.
 
 ## License
 
