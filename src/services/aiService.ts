@@ -46,7 +46,7 @@ export async function generateAIResponse(
           { text: userMessage }
         ],
         config: {
-          tools: [{urlContext: {}}, {googleSearch: {}}],
+          tools: [{googleSearch: {}}],
         }
       });
       
