@@ -51,12 +51,11 @@ export async function generateAIResponse(
           { text: userMessage }
         ],
         config: {
-          tools: [{urlContext: {}}, {googleSearch: {}}],
+          //tools: [{urlContext: {}}, {googleSearch: {}}],
         }
       });
       
       const response = result.text;
-      console.log(response);
       
       return {
         success: true,

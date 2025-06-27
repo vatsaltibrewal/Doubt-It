@@ -5,9 +5,6 @@ import { generateAIResponse } from '@/services/aiService';
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN!);
 
-// Add maxDuration for Vercel hobby plan
-export const maxDuration = 10;
-
 function sanitizeForTelegram(text: string): string {
   return text
     // Remove potential Markdown issues
@@ -20,130 +17,20 @@ function sanitizeForTelegram(text: string): string {
     .substring(0, 4000);
 }
 
-// Update the processAIResponse function
-async function processAIResponse(conversationId: string, messageText: string, formattedHistory: any[], ctx: any) {
-  try {
-    console.log('=== Starting AI Processing ===');
-    console.log('Conversation ID:', conversationId);
-    console.log('User message:', messageText);
-    
-    const aiResponse = await generateAIResponse(conversationId, messageText, formattedHistory);
-    
-    console.log('AI Response received:', {
-      success: aiResponse.success,
-      hasContent: !!aiResponse.content,
-      contentLength: aiResponse.content?.length || 0,
-      error: aiResponse.error
-    });
-    
-    if (aiResponse.success && aiResponse.content) {
-      const sanitizedContent = sanitizeForTelegram(aiResponse.content);
-      console.log('Content sanitized, length:', sanitizedContent.length);
-      
-      // First store the bot message in database
-      const supabase = createServerSupabaseClient();
-      const { data: messageData, error: dbError } = await supabase
-        .from('messages')
-        .insert({
-          conversation_id: conversationId,
-          sender_type: 'bot',
-          content: aiResponse.content, // Store original content, not sanitized
-        })
-        .select()
-        .single();
-      
-      if (dbError) {
-        console.error('Database error:', dbError);
-        throw new Error('Failed to store message in database');
-      }
-      
-      console.log('Message stored in database with ID:', messageData.id);
-      
-      // Then send via your existing API endpoint
-      const baseUrl = process.env.NEXTAUTH_URL || 'https://doubt-it.vercel.app';
-      console.log('Sending to API endpoint:', `${baseUrl}/api/telegram/send`);
-      
-      const response = await fetch(`${baseUrl}/api/telegram/send`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: ctx.chat.id,
-          text: sanitizedContent,
-          message_id: messageData.id
-        })
-      });
-      
-      const responseData = await response.json();
-      console.log('API response:', responseData);
-      
-      if (!response.ok) {
-        console.error('API error:', responseData);
-        throw new Error(responseData.error || 'Failed to send message via API');
-      }
-      
-      console.log('=== AI Processing Complete ===');
-    } else {
-      console.error('AI response failed:', aiResponse);
-      throw new Error(aiResponse.error || 'AI response failed');
-    }
-  } catch (error) {
-    console.error('=== Error in AI Processing ===');
-    console.error('Error details:', error);
-    
-    // Send error message using the same API pattern
-    try {
-      const supabase = createServerSupabaseClient();
-      const errorMessage = 'Sorry, I encountered an error. Please try again or type "agent" to speak with a human.';
-      
-      // Store error message
-      const { data: errorMsgData } = await supabase
-        .from('messages')
-        .insert({
-          conversation_id: conversationId,
-          sender_type: 'bot',
-          content: errorMessage,
-        })
-        .select()
-        .single();
-      
-      // Send error message via API
-      const baseUrl = process.env.NEXTAUTH_URL || 'https://doubt-it.vercel.app';
-      await fetch(`${baseUrl}/api/telegram/send`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: ctx.chat.id,
-          text: errorMessage,
-          message_id: errorMsgData?.id
-        })
-      });
-    } catch (sendError) {
-      console.error('Error sending error message:', sendError);
-    }
-  }
-}
-
 // Initialize bot with basic commands
-bot.start((ctx) => ctx.reply('Welcome to DoubtIt Support! 🤖\n\nHow can I help you today?'));
+bot.start((ctx) => ctx.reply('Welcome to DoubtIt Support! How can I help you today?'));
 bot.help((ctx) => ctx.reply('You can ask me any question, and I\'ll do my best to help! If you need a human agent, just type "agent" or "help"'));
 
 bot.command('agent', async (ctx) => {
-  const supabase = createServerSupabaseClient();
-  const chatId = String(ctx.chat?.id);
-  
-  await supabase
-    .from('conversations')
-    .update({ status: 'agent_mode' })
-    .eq('telegram_chat_id', chatId)
-    .in('status', ['ai_mode']);
-    
-  ctx.reply('🔄 Connecting you with a support agent...\n\nAn agent will review your conversation and assist you shortly!');
+  ctx.reply('We\'re connecting you with a support agent. Please wait a moment...');
+  // Logic to flag this conversation for agent attention
 });
 
 // Handle text messages
 bot.on('text', async (ctx) => {
   const supabase = createServerSupabaseClient();
   
+  // Get user name safely with type checking
   const getUserName = (ctx: Context) => {
     if (ctx.chat?.type === 'private') {
       return ctx.chat.username || ctx.chat.first_name || 'Unknown User';
@@ -156,11 +43,12 @@ bot.on('text', async (ctx) => {
   const chatId = String(ctx.chat?.id);
   const messageText = ctx.message.text;
   
+  // Check if user wants to speak with agent
   const requestingAgent = messageText.toLowerCase().includes('agent') || 
                           messageText.toLowerCase().includes('human') ||
                           messageText.toLowerCase() === 'help';
   
-  // Get or create conversation
+  // Check if conversation exists or create new one
   const { data: existingConversation } = await supabase
     .from('conversations')
     .select('*')
@@ -175,6 +63,7 @@ bot.on('text', async (ctx) => {
     conversationId = existingConversation.id;
     isAgentMode = existingConversation.status === 'agent_mode';
   } else {
+    // Create new conversation
     const { data: newConversation, error } = await supabase
       .from('conversations')
       .insert({
@@ -195,57 +84,106 @@ bot.on('text', async (ctx) => {
   }
   
   // Store user message
-  await supabase.from('messages').insert({
+  const { data: userMessage } = await supabase.from('messages').insert({
     conversation_id: conversationId,
     sender_type: 'user',
     content: messageText,
     telegram_message_id: ctx.message.message_id
-  });
+  }).select().single();
   
+  // If already in agent mode or user requested an agent, notify admins
   if (isAgentMode) {
-    await ctx.reply('👨‍💼 An agent is reviewing your message and will respond shortly...');
+    // Let the human agent handle it
+    await ctx.reply('An agent is reviewing your message and will respond shortly.');
     return;
   }
   
   if (requestingAgent) {
-    await supabase.from('conversations').update({ status: 'agent_mode' }).eq('id', conversationId);
-    await ctx.reply('🔄 Connecting you with a support agent...\n\nPlease wait while an agent reviews your conversation.');
+    await supabase
+      .from('conversations')
+      .update({
+        status: 'agent_mode'
+      })
+      .eq('id', conversationId);
+      
+    await ctx.reply('We\'re connecting you with a support agent. Please wait a moment while an agent reviews your conversation.');
+    
+    // Add a system message
     await supabase.from('messages').insert({
       conversation_id: conversationId,
       sender_type: 'bot',
       content: '--- User requested agent assistance ---'
     });
+    
     return;
   }
   
-  // Send immediate acknowledgment
-  await ctx.reply('🤖 Thinking... I\'ll respond in a moment!');
-  
-  // Get conversation history
-  const { data: messageHistory } = await supabase
-    .from('messages')
-    .select('sender_type, content')
-    .eq('conversation_id', conversationId)
-    .order('created_at', { ascending: true })
-    .limit(10);
+  try {
+    // Get conversation history
+    const { data: messageHistory } = await supabase
+      .from('messages')
+      .select('sender_type, content')
+      .eq('conversation_id', conversationId)
+      .order('created_at', { ascending: true })
+      .limit(10); // Last 10 messages
     
-  const formattedHistory = messageHistory?.map(msg => ({
-    role: msg.sender_type as 'user' | 'bot' | 'agent',
-    content: msg.content
-  })) || [];
-  
-  // Process AI response asynchronously (don't await)
-  processAIResponse(conversationId, messageText, formattedHistory, ctx);
+    const formattedHistory = messageHistory?.map(msg => ({
+      role: msg.sender_type as 'user' | 'bot' | 'agent',
+      content: msg.content
+    })) || [];
+    
+    // Generate AI response
+    const aiResponse = await generateAIResponse(
+      conversationId,
+      messageText,
+      formattedHistory
+    );
+    
+    const responseContent = aiResponse.content;
+    
+    // Send the AI response
+    if (responseContent) {
+      const sanitizedContent = sanitizeForTelegram(responseContent);
+      let reply;
+
+      try {
+        reply = await ctx.reply(sanitizedContent, {
+          parse_mode: 'Markdown'
+        });
+      } catch (parseError) {
+        console.log('Markdown parse failed, sending as plain text');
+        reply = await ctx.reply(sanitizedContent);
+      }
+      
+      // Store bot response
+      if (reply) {
+        await supabase.from('messages').insert({
+          conversation_id: conversationId,
+          sender_type: 'bot',
+          content: responseContent,
+          telegram_message_id: reply.message_id
+        });
+      }
+    } else {
+      await ctx.reply('Sorry, I was unable to generate a response. Please try again or type "agent" to speak with a human.');
+    }
+  } catch (error) {
+    console.error('Error generating response:', error);
+    await ctx.reply('Sorry, I encountered an error. Please try again or type "agent" to speak with a human.');
+  }
 });
 
 export async function POST(req: NextRequest) {
   try {
+    // Verify webhook secret to ensure it's a valid Telegram request
     const secret = req.headers.get('x-telegram-bot-api-secret-token');
     if (secret !== process.env.TELEGRAM_WEBHOOK_SECRET) {
       return NextResponse.json({ success: false }, { status: 403 });
     }
 
     const update = await req.json();
+    
+    // Process the update with Telegraf
     await bot.handleUpdate(update);
     
     return NextResponse.json({ success: true });
