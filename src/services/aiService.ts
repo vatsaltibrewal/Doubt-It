@@ -1,8 +1,8 @@
-import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
+import { GoogleGenAI  } from '@google/genai';
 import { getRelevantDocumentation, enhanceWithKnowledge } from './knowledgeService';
 
 // Initialize the Google Generative AI SDK
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const genAI = new GoogleGenAI ({});
 
 export async function generateAIResponse(
     conversationId: string,
@@ -11,10 +11,7 @@ export async function generateAIResponse(
   ) {
     try {
       // Get relevant documentation based on the query
-      const { context } = await getRelevantDocumentation(userMessage);
-      
-      // Get the Gemini model
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      // const { context } = await getRelevantDocumentation(userMessage);
   
       // Create system prompt with context
       const systemPrompt = `
@@ -31,23 +28,29 @@ export async function generateAIResponse(
       `;
       
       // Format conversation history for the model - FIXING THE ORDER ISSUE
-      let formattedHistory = [];
+      // let formattedHistory = [];
       
-      // Add conversation history - ensuring first message is from user if history exists
-      if (conversationHistory.length > 0) {
-        formattedHistory = conversationHistory.map(msg => ({
-          role: msg.role === 'user' ? 'user' : 'model',
-          parts: [{ text: msg.content }],
-        }));
-      }
+      // // Add conversation history - ensuring first message is from user if history exists
+      // if (conversationHistory.length > 0) {
+      //   formattedHistory = conversationHistory.map(msg => ({
+      //     role: msg.role === 'user' ? 'user' : 'model',
+      //     parts: [{ text: msg.content }],
+      //   }));
+      // }
       
       // Add current message
-      const result = await model.generateContent([
-        { text: systemPrompt },
-        { text: userMessage }
-      ]);
+      const result = await genAI.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [
+          { text: systemPrompt },
+          { text: userMessage }
+        ],
+        config: {
+          tools: [{urlContext: {}}, {googleSearch: {}}],
+        }
+      });
       
-      const response = result.response.text();
+      const response = result.text;
       
       return {
         success: true,
