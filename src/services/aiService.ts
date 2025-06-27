@@ -24,7 +24,12 @@ export async function generateAIResponse(
       If you don't know the answer, don't make things up - suggest speaking with a human agent by saying "You can type 'agent' to connect with a human support agent."
       Right now the project is in test phase so tell the user that it can take admin access from @Vattyy06 if they want to become an agent and try that.
       Whenevr the user asks to connect with an agent, do suggest that they can try to become an agent themselves by asking the admin for access and experience the platform.
-      Make sure that your response is not long as it is a telegram message so stay within that limits.
+      IMPORTANT FORMATTING RULES:
+      - Use **bold** for emphasis (always double asterisks, never single)
+      - Use \`code\` for inline code (single backticks only)
+      - Use proper link format: [text](url)
+      - Keep responses under 500 characters for Telegram
+      - Avoid special characters that might break formatting
       `;
       
       // Format conversation history for the model - FIXING THE ORDER ISSUE
@@ -46,11 +51,12 @@ export async function generateAIResponse(
           { text: userMessage }
         ],
         config: {
-          tools: [{googleSearch: {}}],
+          tools: [{urlContext: {}}, {googleSearch: {}}],
         }
       });
       
       const response = result.text;
+      console.log(response);
       
       return {
         success: true,

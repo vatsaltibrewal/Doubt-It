@@ -12,8 +12,8 @@ export default function LandingPage() {
       {/* Navigation */}
       <nav className="relative px-4 py-4 flex justify-between items-center bg-white/80 backdrop-blur-md shadow-sm">
         <div className="flex items-center space-x-2">
-          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-lg">D</span>
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+            <img src={'./doubtItSmallLogo.png'}/>
           </div>
           <span className="text-2xl font-bold text-gray-900">DoubtIt</span>
         </div>
@@ -65,7 +65,7 @@ export default function LandingPage() {
           
           <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-4xl mx-auto leading-relaxed">
             DoubtIt is an intelligent developer support platform that seamlessly bridges AI assistance with human expertise. 
-            Get instant answers from our Gemini AI, with the option to connect with human experts when needed.
+            Get instant answers from our AI, with the option to connect with human experts when needed.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
@@ -259,8 +259,8 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-2 mb-4 md:mb-0">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold">D</span>
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                <img src={'./doubtItSmallLogo.png'}/>
               </div>
               <span className="text-xl font-bold text-white">DoubtIt</span>
             </div>
