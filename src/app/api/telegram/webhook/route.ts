@@ -127,21 +127,25 @@ bot.on('text', async (ctx) => {
       formattedHistory
     );
     
-    let responseContent = aiResponse.content;
+    const responseContent = aiResponse.content;
     
     // Send the AI response
-    const reply = await ctx.reply(responseContent, { 
-      parse_mode: 'Markdown' 
-    });
-    
-    // Store bot response
-    if (reply) {
-      await supabase.from('messages').insert({
-        conversation_id: conversationId,
-        sender_type: 'bot',
-        content: responseContent,
-        telegram_message_id: reply.message_id
+    if (responseContent) {
+      const reply = await ctx.reply(responseContent, { 
+        parse_mode: 'Markdown' 
       });
+      
+      // Store bot response
+      if (reply) {
+        await supabase.from('messages').insert({
+          conversation_id: conversationId,
+          sender_type: 'bot',
+          content: responseContent,
+          telegram_message_id: reply.message_id
+        });
+      }
+    } else {
+      await ctx.reply('Sorry, I was unable to generate a response. Please try again or type "agent" to speak with a human.');
     }
   } catch (error) {
     console.error('Error generating response:', error);
