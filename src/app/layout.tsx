@@ -9,10 +9,11 @@ export const metadata: Metadata = {
   title: 'DoubtIt - AI-Powered Developer Support Platform',
   description: 'Intelligent developer support platform that bridges AI assistance with human expertise. Get instant answers with seamless expert takeover.',
   keywords: 'AI support, developer support, chatbot, Telegram bot, customer service, Aptos, blockchain support',
+  metadataBase: new URL('https://doubt-it.vercel.app'),
   openGraph: {
     title: 'DoubtIt - Where AI and Human Expertise Converge',
     description: 'Get instant developer support with AI, seamlessly transition to human experts when needed.',
-    url: 'https://your-domain.com',
+    url: 'https://doubt-it.vercel.app',
     siteName: 'DoubtIt',
     images: [
       {
@@ -21,8 +22,11 @@ export const metadata: Metadata = {
         height: 630,
       },
     ],
-    locale: 'en_US',
+    locale: 'en_IN',
     type: 'website',
+  },
+  icons: {
+    icon: { url: '/doubtItSmallLogo.png' },
   },
   twitter: {
     card: 'summary_large_image',

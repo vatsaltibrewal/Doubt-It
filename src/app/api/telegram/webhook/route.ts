@@ -5,6 +5,18 @@ import { generateAIResponse } from '@/services/aiService';
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN!);
 
+function sanitizeForTelegram(text: string): string {
+  return text
+    // Remove potential Markdown issues
+    .replace(/(?<!\*)\*(?!\*)/g, '\\*')
+    .replace(/(?<!_)_(?!_)/g, '\\_')
+    .replace(/(?<!`)(?:`{1}|`{3})(?!`)/g, '\\`')
+    .replace(/\[(?![^\]]*\])/g, '\\[')
+    .replace(/(?<!\[)\]/g, '\\]')
+    // Limit message length for Telegram
+    .substring(0, 4000);
+}
+
 // Initialize bot with basic commands
 bot.start((ctx) => ctx.reply('Welcome to DoubtIt Support! How can I help you today?'));
 bot.help((ctx) => ctx.reply('You can ask me any question, and I\'ll do my best to help! If you need a human agent, just type "agent" or "help"'));
@@ -131,9 +143,17 @@ bot.on('text', async (ctx) => {
     
     // Send the AI response
     if (responseContent) {
-      const reply = await ctx.reply(responseContent, { 
-        parse_mode: 'Markdown' 
-      });
+      const sanitizedContent = sanitizeForTelegram(responseContent);
+      let reply;
+
+      try {
+        reply = await ctx.reply(sanitizedContent, {
+          parse_mode: 'Markdown'
+        });
+      } catch (parseError) {
+        console.log('Markdown parse failed, sending as plain text');
+        reply = await ctx.reply(sanitizedContent);
+      }
       
       // Store bot response
       if (reply) {

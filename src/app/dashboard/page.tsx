@@ -60,7 +60,7 @@ export default function Dashboard() {
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
         </header>
         
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg p-6">
+        <div className="bg-white shadow text-black overflow-hidden sm:rounded-lg p-6">
           <p>Welcome to DoubtIt Support Dashboard</p>
           <p className="mt-4">Here you can monitor and manage support conversations.</p>
           
