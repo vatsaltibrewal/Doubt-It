@@ -10,21 +10,35 @@ export const maxDuration = 10;
 
 function sanitizeForTelegram(text: string): string {
   return text
+    // Remove potential Markdown issues
     .replace(/(?<!\*)\*(?!\*)/g, '\\*')
     .replace(/(?<!_)_(?!_)/g, '\\_')
     .replace(/(?<!`)(?:`{1}|`{3})(?!`)/g, '\\`')
     .replace(/\[(?![^\]]*\])/g, '\\[')
     .replace(/(?<!\[)\]/g, '\\]')
+    // Limit message length for Telegram
     .substring(0, 4000);
 }
 
-// Async function to handle AI processing - UPDATED to use proper API
+// Update the processAIResponse function
 async function processAIResponse(conversationId: string, messageText: string, formattedHistory: any[], ctx: any) {
   try {
+    console.log('=== Starting AI Processing ===');
+    console.log('Conversation ID:', conversationId);
+    console.log('User message:', messageText);
+    
     const aiResponse = await generateAIResponse(conversationId, messageText, formattedHistory);
     
-    if (aiResponse.content) {
+    console.log('AI Response received:', {
+      success: aiResponse.success,
+      hasContent: !!aiResponse.content,
+      contentLength: aiResponse.content?.length || 0,
+      error: aiResponse.error
+    });
+    
+    if (aiResponse.success && aiResponse.content) {
       const sanitizedContent = sanitizeForTelegram(aiResponse.content);
+      console.log('Content sanitized, length:', sanitizedContent.length);
       
       // First store the bot message in database
       const supabase = createServerSupabaseClient();
@@ -39,32 +53,42 @@ async function processAIResponse(conversationId: string, messageText: string, fo
         .single();
       
       if (dbError) {
-        console.error('Error storing bot message:', dbError);
+        console.error('Database error:', dbError);
         throw new Error('Failed to store message in database');
       }
       
+      console.log('Message stored in database with ID:', messageData.id);
+      
       // Then send via your existing API endpoint
       const baseUrl = process.env.NEXTAUTH_URL || 'https://doubt-it.vercel.app';
+      console.log('Sending to API endpoint:', `${baseUrl}/api/telegram/send`);
+      
       const response = await fetch(`${baseUrl}/api/telegram/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           chat_id: ctx.chat.id,
           text: sanitizedContent,
-          message_id: messageData.id // Pass the database message ID
+          message_id: messageData.id
         })
       });
       
+      const responseData = await response.json();
+      console.log('API response:', responseData);
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Error sending via API:', errorData);
-        throw new Error(errorData.error || 'Failed to send message via API');
+        console.error('API error:', responseData);
+        throw new Error(responseData.error || 'Failed to send message via API');
       }
       
-      console.log('AI response sent and stored successfully');
+      console.log('=== AI Processing Complete ===');
+    } else {
+      console.error('AI response failed:', aiResponse);
+      throw new Error(aiResponse.error || 'AI response failed');
     }
   } catch (error) {
-    console.error('Error in async AI processing:', error);
+    console.error('=== Error in AI Processing ===');
+    console.error('Error details:', error);
     
     // Send error message using the same API pattern
     try {
