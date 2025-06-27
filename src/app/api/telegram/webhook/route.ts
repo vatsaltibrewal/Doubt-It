@@ -18,7 +18,7 @@ function sanitizeForTelegram(text: string): string {
     .substring(0, 4000);
 }
 
-// Async function to handle AI processing
+// Async function to handle AI processing - UPDATED to use proper API
 async function processAIResponse(conversationId: string, messageText: string, formattedHistory: any[], ctx: any) {
   try {
     const aiResponse = await generateAIResponse(conversationId, messageText, formattedHistory);
@@ -26,43 +26,76 @@ async function processAIResponse(conversationId: string, messageText: string, fo
     if (aiResponse.content) {
       const sanitizedContent = sanitizeForTelegram(aiResponse.content);
       
-      // Send via Telegram API directly
-      const telegramUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
-      const response = await fetch(telegramUrl, {
+      // First store the bot message in database
+      const supabase = createServerSupabaseClient();
+      const { data: messageData, error: dbError } = await supabase
+        .from('messages')
+        .insert({
+          conversation_id: conversationId,
+          sender_type: 'bot',
+          content: aiResponse.content, // Store original content, not sanitized
+        })
+        .select()
+        .single();
+      
+      if (dbError) {
+        console.error('Error storing bot message:', dbError);
+        throw new Error('Failed to store message in database');
+      }
+      
+      // Then send via your existing API endpoint
+      const baseUrl = process.env.NEXTAUTH_URL || 'https://doubt-it.vercel.app';
+      const response = await fetch(`${baseUrl}/api/telegram/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           chat_id: ctx.chat.id,
           text: sanitizedContent,
-          parse_mode: 'Markdown'
+          message_id: messageData.id // Pass the database message ID
         })
       });
       
-      const result = await response.json();
-      
-      // Store the response in database
-      if (result.ok) {
-        const supabase = createServerSupabaseClient();
-        await supabase.from('messages').insert({
-          conversation_id: conversationId,
-          sender_type: 'bot',
-          content: aiResponse.content,
-          telegram_message_id: result.result.message_id
-        });
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Error sending via API:', errorData);
+        throw new Error(errorData.error || 'Failed to send message via API');
       }
+      
+      console.log('AI response sent and stored successfully');
     }
   } catch (error) {
     console.error('Error in async AI processing:', error);
-    // Send error message
-    const telegramUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
-    await fetch(telegramUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: ctx.chat.id,
-        text: 'Sorry, I encountered an error. Please try again or type "agent" to speak with a human.'
-      })
-    });
+    
+    // Send error message using the same API pattern
+    try {
+      const supabase = createServerSupabaseClient();
+      const errorMessage = 'Sorry, I encountered an error. Please try again or type "agent" to speak with a human.';
+      
+      // Store error message
+      const { data: errorMsgData } = await supabase
+        .from('messages')
+        .insert({
+          conversation_id: conversationId,
+          sender_type: 'bot',
+          content: errorMessage,
+        })
+        .select()
+        .single();
+      
+      // Send error message via API
+      const baseUrl = process.env.NEXTAUTH_URL || 'https://doubt-it.vercel.app';
+      await fetch(`${baseUrl}/api/telegram/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: ctx.chat.id,
+          text: errorMessage,
+          message_id: errorMsgData?.id
+        })
+      });
+    } catch (sendError) {
+      console.error('Error sending error message:', sendError);
+    }
   }
 }
 
@@ -80,7 +113,7 @@ bot.command('agent', async (ctx) => {
     .eq('telegram_chat_id', chatId)
     .in('status', ['ai_mode']);
     
-  ctx.reply('🔄 Connecting you with a support agent...');
+  ctx.reply('🔄 Connecting you with a support agent...\n\nAn agent will review your conversation and assist you shortly!');
 });
 
 // Handle text messages
@@ -103,7 +136,7 @@ bot.on('text', async (ctx) => {
                           messageText.toLowerCase().includes('human') ||
                           messageText.toLowerCase() === 'help';
   
-  // Get or create conversation (same as your existing code)
+  // Get or create conversation
   const { data: existingConversation } = await supabase
     .from('conversations')
     .select('*')
@@ -152,7 +185,7 @@ bot.on('text', async (ctx) => {
   
   if (requestingAgent) {
     await supabase.from('conversations').update({ status: 'agent_mode' }).eq('id', conversationId);
-    await ctx.reply('🔄 Connecting you with a support agent...');
+    await ctx.reply('🔄 Connecting you with a support agent...\n\nPlease wait while an agent reviews your conversation.');
     await supabase.from('messages').insert({
       conversation_id: conversationId,
       sender_type: 'bot',
