@@ -1,6 +1,6 @@
 # DoubtIt: AI-Powered Developer Support Platform
 
-![DoubtIt Logo](public/doubtItLogo.png)
+![DoubtIt Logo](/frontend/public/doubtItLogo.png)
 
 ## What is DoubtIt?
 
@@ -15,7 +15,7 @@ Imagine you're debugging a complex issue or trying to understand a framework. Wi
 
 ## How DoubtIt Works
 
-![DoubtIt Architecture Diagram](public/doubtItDescription.png)
+![DoubtIt Architecture Diagram](/frontend/public/doubtItDescription.png)
 
 Developer support is often fragmented across documentation, GitHub issues, Stack Overflow, Discord, and more. DoubtIt consolidates this experience:
 
@@ -40,12 +40,13 @@ Developer support is often fragmented across documentation, GitHub issues, Stack
 
 ## Tech Stack
 
-- **Frontend**: Next.js 15 with React 19
-- **Backend**: Next.js API Routes (serverless)
-- **Database**: Supabase (PostgreSQL)
+- **Frontend**: Next.js deployed on Vercel
+- **Backend**: Express.js deployed on AWS Lambda
+- **Database**: AWS Dynamodb
+- **Authentication**: AWS Cognito
+- **Realtime**: AWS Websocket API Gateway + Lambda
 - **Bot Platform**: Telegram with Telegraf
 - **AI**: Google Gemini AI
-- **Deployment**: Vercel
 
 ## How It Works
 

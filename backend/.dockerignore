@@ -1,0 +1,35 @@
+# node dependencies—to be installed inside the container
+node_modules
+
+# logs
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Git (not needed in container)
+.git
+.gitignore
+
+# Docker files themselves
+.dockerignore
+Dockerfile*
+
+# Local environment variables
+.env
+.env.local
+.env.*.local
+
+# Build artifacts (if using build/transpile)
+dist
+build
+
+# IDE/editor directories and OS files
+.vscode
+.idea
+*.swp
+.DS_Store
+
+# Optional: test files if not needed in production
+test
+tests
+*.spec.js
