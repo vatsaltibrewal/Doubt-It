@@ -44,8 +44,8 @@ export async function login(req, res) {
     }
     const config = getConfig();
     const cognitoLoginURL = client.buildAuthorizationUrl(config, parameters).href;
-    res.cookie('state', state, { httpOnly: true, signed: true });
-    res.cookie('code_verifier', code_verifier, { httpOnly: true, signed: true });
+    res.cookie('state', state, { httpOnly: true, signed: true, sameSite: 'lax', secure: true, domain: '.doubtit.vatsal.tech', path: '/' });
+    res.cookie('code_verifier', code_verifier, { httpOnly: true, signed: true, sameSite: 'lax', secure: true, domain: '.doubtit.vatsal.tech', path: '/' });
     res.status(200).send(JSON.stringify({ cognitoLoginURL }));
 }
 
@@ -61,11 +61,11 @@ export async function token(req, res) {
                 expectedState: state,
             },
         )
-        res.cookie('ACCESS_TOKEN', tokens.access_token, { httpOnly: true, signed: true });
-        res.cookie('REFRESH_TOKEN', tokens.refresh_token, { httpOnly: true, signed: true });
-        res.cookie('ID_TOKEN', tokens.id_token, { httpOnly: true, signed: true });
-        res.clearCookie("state");
-        res.clearCookie("code_verifier");
+        res.cookie('ACCESS_TOKEN', tokens.access_token, { httpOnly: true, signed: true, secure: true, sameSite: 'lax', domain: '.doubtit.vatsal.tech', path: '/' });
+        res.cookie('REFRESH_TOKEN', tokens.refresh_token, { httpOnly: true, signed: true, secure: true, sameSite: 'lax', domain: '.doubtit.vatsal.tech', path: '/' });
+        res.cookie('ID_TOKEN', tokens.id_token, { httpOnly: true, signed: true, secure: true, sameSite: 'lax', domain: '.doubtit.vatsal.tech', path: '/' });
+        res.clearCookie("state", { httpOnly: true, signed: true, sameSite: 'lax', secure: true, domain: '.doubtit.vatsal.tech', path: '/' });
+        res.clearCookie("code_verifier", { httpOnly: true, signed: true, sameSite: 'lax', secure: true, domain: '.doubtit.vatsal.tech', path: '/' });
         res.status(200).send(tokens)
     }
     catch (err) {
@@ -105,9 +105,9 @@ export async function me(req, res) {
 export async function logout(req, res) {
     try {
         const logoutUrl = new URL(`${process.env.COGNITO_DOMAIN}/logout?client_id=${process.env.COGNITO_CLIENT_ID}&logout_uri=${process.env.COGNITO_LOGOUT_URL}`);
-        res.clearCookie('ACCESS_TOKEN');
-        res.clearCookie('REFRESH_TOKEN');
-        res.clearCookie('ID_TOKEN');
+        res.clearCookie('ACCESS_TOKEN', { httpOnly: true, signed: true, secure: true, sameSite: 'lax', domain: '.doubtit.vatsal.tech', path: '/' });
+        res.clearCookie('REFRESH_TOKEN', { httpOnly: true, signed: true, secure: true, sameSite: 'lax', domain: '.doubtit.vatsal.tech', path: '/' });
+        res.clearCookie('ID_TOKEN', { httpOnly: true, signed: true, secure: true, sameSite: 'lax', domain: '.doubtit.vatsal.tech', path: '/' });
         res.status(200).send(JSON.stringify({ cognitoLogoutURL: logoutUrl }));
     } catch (err) {
         console.error(err);
